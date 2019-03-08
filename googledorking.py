@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 parser = argparse.ArgumentParser(description='Scanner de Sqlmap + Google Dorking')
 parser.add_argument("-t", "--tor", help="Utilizar anonimáto", action="store_true")
 parser.add_argument("-d","--dork", help="Dork a ejecutar", required=True)
-parser.add_argument("-f", "--file", help="Nombre de archivo de salida", default="Mozilla/11.0")
+parser.add_argument("-f", "--file", help="Nombre de archivo de salida")
 parser.add_argument("-u", "--useragent", help="User-agent",default="Mozilla/11.0")
 args = parser.parse_args()
 
