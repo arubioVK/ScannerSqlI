@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import subprocess, time, os, sys,json, urllib, requests, argparse, re
+import subprocess, time, os, sys, json, urllib, requests, argparse, re
 from bs4 import BeautifulSoup
 
 #Menú
@@ -11,24 +11,35 @@ parser.add_argument("-t", "--tor", help="Utilizar anonimáto", action="store_tru
 parser.add_argument("-d","--dork", help="Dork a ejecutar", required=True)
 parser.add_argument("-f", "--file", help="Nombre de archivo de salida")
 parser.add_argument("-u", "--useragent", help="User-agent",default="Mozilla/11.0")
-args = parser.parse_args()
+parser.add_argument("-p", "--numberpages", help="Numero máximo de páginas a comprobar", type=int, default="10")
 
-#Extracción de las Urls
+#Inicializamos variables
+args = parser.parse_args()
 lista_vulnerable = list()
 urls = set()
-urlgoogle = 'http://www.google.com/search'
-payload = {'q':args.dork,'start':'0'}
-user_agent = { 'User-agent' : args.useragent }
-r = requests.get(urlgoogle, params = payload, headers = user_agent )
-soup = BeautifulSoup( r.text, 'html.parser' )
-h3tags = soup.find_all( 'h3', class_='r' )
-for h3 in h3tags:
-    try:
-        url = re.search('url\?q=(.+?)\&sa', h3.a['href']).group(1)
-	url = urllib.unquote(url).decode('utf8')
-	urls.add(url)
-    except:
-        continue
+numero_pagina = 0
+maximo_conseguido = False
+
+#Extracción de las Urls
+while not(maximo_conseguido):
+    urlgoogle = 'http://www.google.com/search'
+    payload = {'q':args.dork,'start':numero_pagina}
+    user_agent = { 'User-agent' : args.useragent }
+    r = requests.get(urlgoogle, params = payload, headers = user_agent )
+    soup = BeautifulSoup( r.text, 'html.parser' )
+    h3tags = soup.find_all( 'h3', class_='r' )
+    maximo_conseguido = (len(h3tags)==0)
+    for h3 in h3tags:
+        try:
+            url = re.search('url\?q=(.+?)\&sa', h3.a['href']).group(1)
+            url = urllib.unquote(url).decode('utf8')
+	    urls.add(url)
+	    if len(urls)>=args.numberpages:
+		maximo_conseguido = True
+		break
+        except:
+            continue
+    numero_pagina+=1
 
 #Comprobación SQLI
 if args.tor:
@@ -60,7 +71,6 @@ if args.file:
         f.write(vulnerable+"\n")
     f.close()
 	
-
 
 
 
